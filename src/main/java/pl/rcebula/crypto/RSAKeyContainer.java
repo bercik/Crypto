@@ -22,8 +22,8 @@ import java.security.spec.X509EncodedKeySpec;
  */
 public final class RSAKeyContainer
 {
-    private PublicKey publicKey;
-    private PrivateKey privateKey;
+    private final PublicKey publicKey;
+    private final PrivateKey privateKey;
 
     public RSAKeyContainer(String publicKeyResourceName) throws Exception
     {
@@ -82,9 +82,10 @@ public final class RSAKeyContainer
     {
         byte[] keyBytes = readAllBytes(resourceName);
 
-         X509EncodedKeySpec spec
-         = new X509EncodedKeySpec(keyBytes);
-         KeyFactory kf = KeyFactory.getInstance(Names.RSA_ALGORITHM_NAME);
-         return kf.generatePublic(spec);
+        X509EncodedKeySpec spec
+                = new X509EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance(Names.RSA_ALGORITHM_NAME);
+        
+        return kf.generatePublic(spec);
     }
 }
