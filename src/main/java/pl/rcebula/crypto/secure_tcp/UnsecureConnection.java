@@ -63,7 +63,7 @@ public class UnsecureConnection implements IConnection
             byte[] signIv = rsa.sign(decryptedIv, rsakc.getPrivateKey());
             
             secureTCPServer.write(this, signKey);
-            secureTCPServer.write(this, signIv);
+            secureTCPServer.write(this, signIv, true);
             
             ready = true;
             
@@ -77,6 +77,7 @@ public class UnsecureConnection implements IConnection
 
     public void write(byte[] data) throws IOException
     {
+        outputStream.writeInt(data.length);
         outputStream.write(data);
     }
     
@@ -88,5 +89,16 @@ public class UnsecureConnection implements IConnection
     public SecureConnection getSecureConnection() throws IOException
     {
         return new SecureConnection(socket, aeskc);
+    }
+    
+    public void close()
+    {
+        try
+        {
+            socket.close();
+        }
+        catch (IOException e)
+        {
+        }
     }
 }

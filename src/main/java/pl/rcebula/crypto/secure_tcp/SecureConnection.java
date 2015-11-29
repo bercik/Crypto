@@ -59,6 +59,19 @@ public class SecureConnection implements IConnection
         AES aes = new AES();
         byte[] encrypted = aes.encrypt(data, aeskc.getKey(), aeskc.getIv());
         
+        outputStream.writeInt(encrypted.length);
         outputStream.write(encrypted);
+    }
+    
+    public void close()
+    {
+        try
+        {
+            socket.close();
+        }
+        catch (IOException ex)
+        {
+            
+        }
     }
 }

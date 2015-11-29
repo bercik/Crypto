@@ -89,14 +89,4 @@ public class SecureTCPServerTest
         instance.start();
         instance.stop();
     }
-
-    /**
-     * Test of accept method, of class SecureTCPServer.
-     */
-    @Test
-    public void testAccept()
-    {
-        System.out.println("accept");
-    }
-    
 }
