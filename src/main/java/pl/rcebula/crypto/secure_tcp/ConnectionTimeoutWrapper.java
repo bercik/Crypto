@@ -36,11 +36,11 @@ class ConnectionTimeoutWrapper<T extends Connection> implements IConnection
     }
 
     @Override
-    public byte[] read() throws Exception
+    public int read(ByteArray data) throws Exception
     {
-        byte[] data = connection.read();
+        int bytesRead = connection.read(data);
 
-        if (data.length != 0)
+        if (bytesRead >= 0)
         {
             lastWriteRead = System.currentTimeMillis();
         }
@@ -49,7 +49,7 @@ class ConnectionTimeoutWrapper<T extends Connection> implements IConnection
             bTimeout = true;
         }
 
-        return data;
+        return bytesRead;
     }
 
     @Override

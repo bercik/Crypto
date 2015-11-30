@@ -174,7 +174,7 @@ public class SecureTCPServer
                         UnsecureConnectionTimeout uc = it.next();
                         try
                         {
-                            uc.read();
+                            uc.read(new IConnection.ByteArray());
                             UnsecureConnection connection = uc.getConnection();
                             if (connection.isSecureConnectionEstablished(uc))
                             {
@@ -218,10 +218,12 @@ public class SecureTCPServer
 
                         try
                         {
-                            byte[] data = sc.read();
-                            if (data.length != 0)
+                            IConnection.ByteArray data = 
+                                    new IConnection.ByteArray();
+                            int bytesRead = sc.read(data);
+                            if (bytesRead > 0)
                             {
-                                readCallback.dataRead(data, sc);
+                                readCallback.dataRead(data.array, sc);
                             }
                             else if (sc.isTimeout())
                             {

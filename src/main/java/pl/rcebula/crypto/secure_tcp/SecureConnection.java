@@ -43,33 +43,41 @@ class SecureConnection extends Connection
     }
     
     @Override
-    public byte[] read() throws IOException, AES.DecryptionError
+    public int read(ByteArray data) throws IOException, AES.DecryptionError
     {
         if (inputStream.available() > 0)
         {
             // perform reading
             int length = inputStream.readInt();
-            byte[] data = new byte[length];
-            inputStream.readFully(data);
+            data.array = new byte[length];
+            inputStream.readFully(data.array);
             
             AES aes = new AES();
-            byte[] decrypted = aes.decrypt(data, aeskc.getKey(), aeskc.getIv());
+            data.array = aes.decrypt(data.array, aeskc.getKey(), 
+                    aeskc.getIv());
             
-            return decrypted;
+            return length;
         }
         else
         {
-            return new byte[0];
+            return -1;
         }
     }
     
     @Override
     public void write(byte[] data) throws AES.EncryptionError, IOException
     {
-        AES aes = new AES();
-        byte[] encrypted = aes.encrypt(data, aeskc.getKey(), aeskc.getIv());
-        
-        outputStream.writeInt(encrypted.length);
-        outputStream.write(encrypted);
+        if (data.length == 0)
+        {
+            outputStream.writeInt(0);
+        }
+        else
+        {
+            AES aes = new AES();
+            byte[] encrypted = aes.encrypt(data, aeskc.getKey(), aeskc.getIv());
+
+            outputStream.writeInt(encrypted.length);
+            outputStream.write(encrypted);
+        }
     }
 }

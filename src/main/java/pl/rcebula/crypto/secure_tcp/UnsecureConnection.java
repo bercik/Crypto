@@ -12,7 +12,6 @@ import java.net.Socket;
 import pl.rcebula.crypto.encryption.AESKeyContainer;
 import pl.rcebula.crypto.encryption.RSA;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
-import sun.java2d.xr.XRUtils;
 
 /**
  *
@@ -53,7 +52,7 @@ class UnsecureConnection extends Connection
     }
 
     @Override
-    public byte[] read() throws Exception
+    public int read(ByteArray data) throws Exception
     {
         if (inputStream.available() > 0)
         {
@@ -72,9 +71,11 @@ class UnsecureConnection extends Connection
             aeskc = new AESKeyContainer(decryptedKey, decryptedIv);
             
             ready = true;
+            
+            return 0;
         }
         
-        return new byte[0];
+        return -1;
     }
 
     @Override
