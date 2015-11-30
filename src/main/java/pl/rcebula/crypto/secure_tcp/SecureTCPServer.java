@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import pl.rcebula.crypto.encryption.AES;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
 
@@ -22,9 +23,12 @@ public class SecureTCPServer
 {
     private final ServerSocket serverSocket;
     private final int port;
+    // czas po którym połączenie z niekatywnym klientem (tj. niewysyłającym
+    // i nie odbierającym żadnych danych) jest sprawdzane i ew. usuwane (w ms)
+    private final int timeout;
     private final RSAKeyContainer rsakc;
 
-    private boolean running;
+    private final AtomicBoolean running;
 
     // callback dla zdarzenia odczytania danych
     private final IReadCallback readCallback;
@@ -49,14 +53,15 @@ public class SecureTCPServer
     private final LinkedList<IConnection> acceptedConnections
             = new LinkedList<>();
 
-    public SecureTCPServer(int port, RSAKeyContainer rsakc,
+    public SecureTCPServer(int port, RSAKeyContainer rsakc, int timeout,
             IReadCallback readCallback,
             ICloseConnectionCallback closeConnectionCallback) throws IOException
     {
         this.serverSocket = new ServerSocket(port);
         this.port = port;
+        this.timeout = timeout;
         this.rsakc = rsakc;
-        this.running = false;
+        this.running = new AtomicBoolean(false);
 
         this.readCallback = readCallback;
         this.closeConnectionCallback = closeConnectionCallback;
@@ -64,18 +69,26 @@ public class SecureTCPServer
 
     public synchronized void start()
     {
-        running = true;
+        running.set(true);
 
-        new Thread(new AcceptThread()).start();
-        new Thread(new ReadThread()).start();
-        new Thread(new WriteThread()).start();
+        Thread t = new Thread(new AcceptThread());
+        t.setDaemon(true);
+        t.start();
+        
+        t = new Thread(new ReadThread());
+        t.setDaemon(true);
+        t.start();
+        
+        t = new Thread(new WriteThread());
+        t.setDaemon(true);
+        t.start();
     }
 
     public synchronized void stop()
     {
         try
         {
-            running = false;
+            running.set(false);
 
             synchronized (unsecureConnections)
             {
@@ -128,7 +141,7 @@ public class SecureTCPServer
         {
             Thread.currentThread().setName("Reading thread");
 
-            while (running)
+            while (running.get())
             {
                 synchronized (unsecureConnections)
                 {
@@ -180,6 +193,8 @@ public class SecureTCPServer
                         }
                     }
                 }
+                
+                Thread.yield();
             }
         }
     }
@@ -191,7 +206,7 @@ public class SecureTCPServer
         {
             Thread.currentThread().setName("Writing thread");
 
-            while (running)
+            while (running.get())
             {
                 boolean hasDataToRead = false;
                 while (!hasDataToRead)
@@ -260,6 +275,8 @@ public class SecureTCPServer
                         }
                     }
                 }
+                
+                Thread.yield();
             }
         }
     }
@@ -271,7 +288,7 @@ public class SecureTCPServer
         {
             Thread.currentThread().setName("Accepting thread");
 
-            while (running)
+            while (running.get())
             {
                 try
                 {
@@ -300,6 +317,8 @@ public class SecureTCPServer
             {
                 hasAcceptedConnection = (acceptedConnections.size() != 0);
             }
+            
+            Thread.yield();
         }
 
         synchronized (acceptedConnections)

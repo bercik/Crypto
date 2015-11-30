@@ -17,7 +17,7 @@ import pl.rcebula.crypto.encryption.RSAKeyContainer;
  *
  * @author robert
  */
-public class UnsecureConnection implements IConnection
+class UnsecureConnection implements IConnection
 {
     private final Socket socket;
     private final DataInputStream inputStream;

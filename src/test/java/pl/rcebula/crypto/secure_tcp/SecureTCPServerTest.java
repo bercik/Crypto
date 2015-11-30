@@ -60,7 +60,7 @@ public class SecureTCPServerTest
         int port = 14000;
         RSAKeyContainer rsakc = 
                 new RSAKeyContainer("/public_key.der", "/private_key.der");
-        instance = new SecureTCPServer(port, rsakc, new ReadCallback(), 
+        instance = new SecureTCPServer(port, rsakc, 1000, new ReadCallback(), 
                 new CloseConnectionCallback());
     }
     

@@ -16,7 +16,7 @@ import pl.rcebula.crypto.encryption.AESKeyContainer;
  *
  * @author robert
  */
-public class SecureConnection implements IConnection
+class SecureConnection implements IConnection
 {
     private final Socket socket;
     private final DataInputStream inputStream;

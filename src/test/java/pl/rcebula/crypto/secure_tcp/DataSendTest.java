@@ -5,6 +5,9 @@
  */
 package pl.rcebula.crypto.secure_tcp;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -30,6 +33,7 @@ public class DataSendTest
     private static class ReadCallback implements IReadCallback
     {
         public static int counter = 0;
+        public static List<String> recivedMsgs = new ArrayList<>();
 
         @Override
         public void dataRead(byte[] data, IConnection connection)
@@ -37,9 +41,9 @@ public class DataSendTest
             try
             {
                 String message = new String(data, Names.STRING_CODING);
-                System.out.println(message);
+                recivedMsgs.add(message);
 
-                assertEquals(message, messages[counter++]);
+                counter++;
             }
             catch (Exception ex)
             {
@@ -91,7 +95,7 @@ public class DataSendTest
         RSAKeyContainer serverRsakc = new RSAKeyContainer("/public_key.der",
                 "/private_key.der");
         SecureTCPServer secureTCPServer = new SecureTCPServer(port, serverRsakc,
-                new ReadCallback(), new CloseConnectionCallback());
+                1000, new ReadCallback(), new CloseConnectionCallback());
         secureTCPServer.start();
 
         RSAKeyContainer clientRsakc = new RSAKeyContainer("/public_key.der");
@@ -114,7 +118,9 @@ public class DataSendTest
         secureTCPClient.close();
         secureTCPClient1.close();
 
-        assertEquals(ReadCallback.counter, 3);
-        assertEquals(CloseConnectionCallback.counter, 0);
+        assertEquals(messages.length, ReadCallback.counter);
+        assertEquals(0, CloseConnectionCallback.counter);
+        List<String> msgs = Arrays.asList(messages);
+        assertTrue(msgs.containsAll(ReadCallback.recivedMsgs));
     }
 }

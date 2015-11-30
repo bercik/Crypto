@@ -75,7 +75,7 @@ public class HandshakeRemotelyTest
         RSAKeyContainer serverRsakc = new RSAKeyContainer("/public_key.der",
                 "/private_key.der");
         SecureTCPServer secureTCPServer = new SecureTCPServer(port, serverRsakc,
-                new ReadCallback(), new CloseConnectionCallback());
+                1000, new ReadCallback(), new CloseConnectionCallback());
         secureTCPServer.start();
         
         RSAKeyContainer clientRsakc = new RSAKeyContainer("/public_key.der");
