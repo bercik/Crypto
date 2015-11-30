@@ -115,8 +115,11 @@ public class SecureTCPClient
 
     public void close()
     {
-        connected = false;
+        if (connected)
+        {
+            connected = false;
 
-        secureConnection.close();
+            secureConnection.close();
+        }
     }
 }

@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import pl.rcebula.crypto.encryption.AES;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
 
@@ -34,6 +35,10 @@ public class SecureTCPServer
     private final RSAKeyContainer rsakc;
 
     private final AtomicBoolean running;
+
+    // zmienne używane do testów
+    private final AtomicInteger closedSecureConnections;
+    private final AtomicInteger closedUnsecureConnections;
 
     // callback dla zdarzenia odczytania danych
     private final IReadCallback readCallback;
@@ -68,8 +73,21 @@ public class SecureTCPServer
         this.rsakc = rsakc;
         this.running = new AtomicBoolean(false);
 
+        this.closedSecureConnections = new AtomicInteger(0);
+        this.closedUnsecureConnections = new AtomicInteger(0);
+
         this.readCallback = readCallback;
         this.closeConnectionCallback = closeConnectionCallback;
+    }
+
+    public int getClosedSecureConnections()
+    {
+        return closedSecureConnections.get();
+    }
+
+    public int getClosedUnsecureConnections()
+    {
+        return closedUnsecureConnections.get();
     }
 
     public synchronized void start()
@@ -129,21 +147,23 @@ public class SecureTCPServer
     private void closeUnsecureConnection(UnsecureConnectionTimeout uc)
     {
         uc.close();
+        
         synchronized (unsecureConnections)
         {
             unsecureConnections.remove(uc);
+            closedUnsecureConnections.incrementAndGet();
         }
     }
 
     private void closeSecureConnection(SecureConnectionTimeout sc)
     {
         boolean contains;
-        
+
         synchronized (secureConnections)
         {
             contains = secureConnections.contains(sc);
         }
-        
+
         if (contains)
         {
             sc.close();
@@ -151,6 +171,7 @@ public class SecureTCPServer
             synchronized (secureConnections)
             {
                 secureConnections.remove(sc);
+                closedSecureConnections.incrementAndGet();
             }
         }
     }
@@ -181,10 +202,10 @@ public class SecureTCPServer
                                 SecureConnection sc
                                         = connection.getSecureConnection();
 
-                                SecureConnectionTimeout sct = 
-                                        new SecureConnectionTimeout(sc,
+                                SecureConnectionTimeout sct
+                                        = new SecureConnectionTimeout(sc,
                                                 secureConnectionTimeout);
-                                
+
                                 synchronized (secureConnections)
                                 {
                                     secureConnections.add(sct);
@@ -218,8 +239,8 @@ public class SecureTCPServer
 
                         try
                         {
-                            IConnection.ByteArray data = 
-                                    new IConnection.ByteArray();
+                            IConnection.ByteArray data
+                                    = new IConnection.ByteArray();
                             int bytesRead = sc.read(data);
                             if (bytesRead > 0)
                             {
