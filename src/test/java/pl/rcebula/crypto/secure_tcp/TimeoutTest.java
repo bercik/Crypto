@@ -9,7 +9,7 @@ package pl.rcebula.crypto.secure_tcp;
  *
  * @author robert
  */
-public interface ICloseConnectionCallback
+public class TimeoutTest
 {
-    public void closeConnection(IConnectionId connection);
+    
 }

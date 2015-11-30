@@ -11,5 +11,5 @@ package pl.rcebula.crypto.secure_tcp;
  */
 public interface IReadCallback
 {
-    public void dataRead(byte[] data, IConnection connection);
+    public void dataRead(byte[] data, IConnectionId connection);
 }

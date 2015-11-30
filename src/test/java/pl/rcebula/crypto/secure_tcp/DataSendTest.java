@@ -36,7 +36,7 @@ public class DataSendTest
         public static List<String> recivedMsgs = new ArrayList<>();
 
         @Override
-        public void dataRead(byte[] data, IConnection connection)
+        public void dataRead(byte[] data, IConnectionId connection)
         {
             try
             {
@@ -58,7 +58,7 @@ public class DataSendTest
         private static int counter = 0;
 
         @Override
-        public void closeConnection(IConnection connection)
+        public void closeConnection(IConnectionId connection)
         {
             counter++;
         }
@@ -91,11 +91,11 @@ public class DataSendTest
     @Test
     public void dataSendTest() throws Exception
     {
-        int port = 14002;
+        int port = 14003;
         RSAKeyContainer serverRsakc = new RSAKeyContainer("/public_key.der",
                 "/private_key.der");
         SecureTCPServer secureTCPServer = new SecureTCPServer(port, serverRsakc,
-                1000, new ReadCallback(), new CloseConnectionCallback());
+                1000, 500, new ReadCallback(), new CloseConnectionCallback());
         secureTCPServer.start();
 
         RSAKeyContainer clientRsakc = new RSAKeyContainer("/public_key.der");
@@ -111,6 +111,7 @@ public class DataSendTest
         secureTCPClient.write(messages[0].getBytes(Names.STRING_CODING));
         secureTCPClient1.write(messages[1].getBytes(Names.STRING_CODING));
         secureTCPClient.write(messages[2].getBytes(Names.STRING_CODING));
+        secureTCPClient1.write(new byte[0]);
 
         Thread.sleep(50);
 

@@ -12,14 +12,24 @@ import java.net.Socket;
 import pl.rcebula.crypto.encryption.AESKeyContainer;
 import pl.rcebula.crypto.encryption.RSA;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
+import sun.java2d.xr.XRUtils;
 
 /**
  *
  * @author robert
  */
-class UnsecureConnection implements IConnection
+class UnsecureConnectionTimeout 
+    extends ConnectionTimeoutWrapper<UnsecureConnection>
 {
-    private final Socket socket;
+    public UnsecureConnectionTimeout(UnsecureConnection connection, 
+            long timeout)
+    {
+        super(connection, timeout);
+    }
+}
+
+class UnsecureConnection extends Connection
+{
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
     private final SecureTCPServer secureTCPServer;
@@ -31,7 +41,8 @@ class UnsecureConnection implements IConnection
     public UnsecureConnection(Socket socket, SecureTCPServer secureTCPServer,
             RSAKeyContainer rsakc) throws IOException
     {
-        this.socket = socket;
+        super(socket);
+        
         this.inputStream = new DataInputStream(socket.getInputStream());
         this.outputStream = new DataOutputStream(socket.getOutputStream());
         
@@ -41,7 +52,8 @@ class UnsecureConnection implements IConnection
         this.ready = false;
     }
 
-    public boolean read() throws Exception
+    @Override
+    public byte[] read() throws Exception
     {
         if (inputStream.available() > 0)
         {
@@ -59,46 +71,45 @@ class UnsecureConnection implements IConnection
             
             aeskc = new AESKeyContainer(decryptedKey, decryptedIv);
             
-            byte[] signKey = rsa.sign(decryptedKey, rsakc.getPrivateKey());
-            byte[] signIv = rsa.sign(decryptedIv, rsakc.getPrivateKey());
-            
-            secureTCPServer.write(this, signKey);
-            secureTCPServer.write(this, signIv, true);
-            
             ready = true;
-            
-            return true;
         }
-        else
-        {
-            return false;
-        }
+        
+        return new byte[0];
     }
 
+    @Override
     public void write(byte[] data) throws IOException
     {
         outputStream.writeInt(data.length);
         outputStream.write(data);
     }
     
-    public boolean isReady()
+    public boolean isSecureConnectionEstablished(
+            UnsecureConnectionTimeout referenceToWrite) throws Exception
     {
-        return ready;
+        // jeżeli otrzymano klucz AES od klienta to odsyłamy mu nasz podpis
+        // klucza
+        if (ready)
+        {
+            RSA rsa = new RSA();
+            byte[] signKey = rsa.sign(aeskc.getKey().getEncoded(), 
+                    rsakc.getPrivateKey());
+            byte[] signIv = rsa.sign(aeskc.getIv().getIV(), 
+                    rsakc.getPrivateKey());
+
+            secureTCPServer.write(referenceToWrite, signKey);
+            secureTCPServer.write(referenceToWrite, signIv, true);
+            
+            ready = false;
+            
+            return true;
+        }
+        
+        return false;
     }
     
     public SecureConnection getSecureConnection() throws IOException
     {
         return new SecureConnection(socket, aeskc);
-    }
-    
-    public void close()
-    {
-        try
-        {
-            socket.close();
-        }
-        catch (IOException e)
-        {
-        }
     }
 }

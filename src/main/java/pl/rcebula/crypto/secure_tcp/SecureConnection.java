@@ -16,9 +16,16 @@ import pl.rcebula.crypto.encryption.AESKeyContainer;
  *
  * @author robert
  */
-class SecureConnection implements IConnection
+class SecureConnectionTimeout extends ConnectionTimeoutWrapper<SecureConnection>
 {
-    private final Socket socket;
+    public SecureConnectionTimeout(SecureConnection connection, long timeout)
+    {
+        super(connection, timeout);
+    }
+}
+
+class SecureConnection extends Connection
+{
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
     
@@ -27,13 +34,15 @@ class SecureConnection implements IConnection
     public SecureConnection(Socket socket, AESKeyContainer aeskc) 
             throws IOException
     {
-        this.socket = socket;
+        super(socket);
+        
         this.inputStream = new DataInputStream(socket.getInputStream());
         this.outputStream = new DataOutputStream(socket.getOutputStream());
         
         this.aeskc = aeskc;
     }
     
+    @Override
     public byte[] read() throws IOException, AES.DecryptionError
     {
         if (inputStream.available() > 0)
@@ -54,6 +63,7 @@ class SecureConnection implements IConnection
         }
     }
     
+    @Override
     public void write(byte[] data) throws AES.EncryptionError, IOException
     {
         AES aes = new AES();
@@ -61,17 +71,5 @@ class SecureConnection implements IConnection
         
         outputStream.writeInt(encrypted.length);
         outputStream.write(encrypted);
-    }
-    
-    public void close()
-    {
-        try
-        {
-            socket.close();
-        }
-        catch (IOException ex)
-        {
-            
-        }
     }
 }

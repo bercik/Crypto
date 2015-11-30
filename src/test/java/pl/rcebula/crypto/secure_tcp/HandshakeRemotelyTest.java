@@ -25,7 +25,7 @@ public class HandshakeRemotelyTest
         private static int counter = 0;
         
         @Override
-        public void dataRead(byte[] data, IConnection connection)
+        public void dataRead(byte[] data, IConnectionId connection)
         {
             counter++;
         }
@@ -37,7 +37,7 @@ public class HandshakeRemotelyTest
         private static int counter = 0;
         
         @Override
-        public void closeConnection(IConnection connection)
+        public void closeConnection(IConnectionId connection)
         {
             counter++;
         }
@@ -71,11 +71,11 @@ public class HandshakeRemotelyTest
     @Test
     public void HandshakeClientServerTest() throws Exception
     {
-        int port = 14001;
+        int port = 14002;
         RSAKeyContainer serverRsakc = new RSAKeyContainer("/public_key.der",
                 "/private_key.der");
         SecureTCPServer secureTCPServer = new SecureTCPServer(port, serverRsakc,
-                1000, new ReadCallback(), new CloseConnectionCallback());
+                1000, 500, new ReadCallback(), new CloseConnectionCallback());
         secureTCPServer.start();
         
         RSAKeyContainer clientRsakc = new RSAKeyContainer("/public_key.der");

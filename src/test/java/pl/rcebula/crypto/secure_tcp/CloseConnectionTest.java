@@ -25,7 +25,7 @@ public class CloseConnectionTest
         public static int counter = 0;
 
         @Override
-        public void dataRead(byte[] data, IConnection connection)
+        public void dataRead(byte[] data, IConnectionId connection)
         {
             counter++;
         }
@@ -37,7 +37,7 @@ public class CloseConnectionTest
         private static int counter = 0;
 
         @Override
-        public void closeConnection(IConnection connection)
+        public void closeConnection(IConnectionId connection)
         {
             counter++;
         }
@@ -74,7 +74,7 @@ public class CloseConnectionTest
         RSAKeyContainer serverRsakc = new RSAKeyContainer("/public_key.der",
                 "/private_key.der");
         SecureTCPServer secureTCPServer = new SecureTCPServer(port, serverRsakc,
-                1000, new ReadCallback(), new CloseConnectionCallback());
+                10000, 5000, new ReadCallback(), new CloseConnectionCallback());
         secureTCPServer.start();
 
         RSAKeyContainer clientRsakc = new RSAKeyContainer("/public_key.der");
@@ -87,8 +87,8 @@ public class CloseConnectionTest
         secureTCPClient.connect();
         secureTCPClient1.connect();
 
-        IConnection connection1 = secureTCPServer.accept();
-        IConnection connection2 = secureTCPServer.accept();
+        IConnectionId connection1 = secureTCPServer.accept();
+        IConnectionId connection2 = secureTCPServer.accept();
 
         Thread.sleep(20);
 
@@ -108,7 +108,7 @@ public class CloseConnectionTest
 
         secureTCPServer.stop();
 
-        assertEquals(ReadCallback.counter, 0);
-        assertEquals(CloseConnectionCallback.counter, 2);
+        assertEquals(0, ReadCallback.counter);
+        assertEquals(2, CloseConnectionCallback.counter);
     }
 }

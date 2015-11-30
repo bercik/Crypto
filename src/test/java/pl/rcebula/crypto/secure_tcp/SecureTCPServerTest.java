@@ -29,7 +29,7 @@ public class SecureTCPServerTest
     private static class ReadCallback implements IReadCallback
     {
         @Override
-        public void dataRead(byte[] data, IConnection connection)
+        public void dataRead(byte[] data, IConnectionId connection)
         {
             try
             {
@@ -47,7 +47,7 @@ public class SecureTCPServerTest
             ICloseConnectionCallback
     {
         @Override
-        public void closeConnection(IConnection connection)
+        public void closeConnection(IConnectionId connection)
         {
             System.out.println("closed connection");
         }
@@ -60,8 +60,8 @@ public class SecureTCPServerTest
         int port = 14000;
         RSAKeyContainer rsakc = 
                 new RSAKeyContainer("/public_key.der", "/private_key.der");
-        instance = new SecureTCPServer(port, rsakc, 1000, new ReadCallback(), 
-                new CloseConnectionCallback());
+        instance = new SecureTCPServer(port, rsakc, 1000, 500, 
+                new ReadCallback(), new CloseConnectionCallback());
     }
     
     @AfterClass

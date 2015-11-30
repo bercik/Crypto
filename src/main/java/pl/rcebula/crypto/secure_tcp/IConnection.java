@@ -9,6 +9,11 @@ package pl.rcebula.crypto.secure_tcp;
  *
  * @author robert
  */
-public interface IConnection
+public interface IConnection extends IConnectionId
 {
+    public abstract void write(byte[] data) throws Exception;
+    
+    public abstract byte[] read() throws Exception;
+    
+    public void close();
 }

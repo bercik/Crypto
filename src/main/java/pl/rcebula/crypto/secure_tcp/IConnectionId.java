@@ -9,7 +9,6 @@ package pl.rcebula.crypto.secure_tcp;
  *
  * @author robert
  */
-public interface ICloseConnectionCallback
+public interface IConnectionId
 {
-    public void closeConnection(IConnectionId connection);
 }
