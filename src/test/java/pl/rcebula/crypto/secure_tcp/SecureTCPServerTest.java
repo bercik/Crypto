@@ -29,7 +29,8 @@ public class SecureTCPServerTest
     private static class ReadCallback implements IReadCallback
     {
         @Override
-        public void dataRead(byte[] data, IConnectionId connection)
+        public void dataRead(byte[] data, IConnectionId connection,
+                SecureTCPServer server)
         {
             try
             {

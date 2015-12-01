@@ -30,7 +30,8 @@ public class TimeoutTest
         public static int counter = 0;
 
         @Override
-        public void dataRead(byte[] data, IConnectionId connection)
+        public void dataRead(byte[] data, IConnectionId connection,
+                SecureTCPServer server)
         {
             try
             {

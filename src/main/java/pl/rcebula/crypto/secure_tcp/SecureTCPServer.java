@@ -244,7 +244,8 @@ public class SecureTCPServer
                             int bytesRead = sc.read(data);
                             if (bytesRead > 0)
                             {
-                                readCallback.dataRead(data.array, sc);
+                                readCallback.dataRead(data.array, sc, 
+                                        SecureTCPServer.this);
                             }
                             else if (sc.isTimeout())
                             {
@@ -377,6 +378,7 @@ public class SecureTCPServer
         }
     }
 
+    // blocking method that return one connection
     public IConnectionId accept()
     {
         boolean hasAcceptedConnection = false;
@@ -394,7 +396,24 @@ public class SecureTCPServer
         {
             return acceptedConnections.removeFirst();
         }
-
+    }
+    
+    // non-blocking method that returns all accepted till this moment 
+    // connections at once as array (return 0 element array if no connections)
+    public IConnectionId[] acceptAll()
+    {
+        IConnectionId[] result = new IConnectionId[0];
+        
+        synchronized (acceptedConnections)
+        {
+            if (acceptedConnections.size() != 0)
+            {
+                result = acceptedConnections.toArray(new IConnectionId[0]);
+                acceptedConnections.clear();
+            }
+        }
+        
+        return result;
     }
 
     public void write(IConnectionId connection, byte[] data)

@@ -36,7 +36,8 @@ public class DataSendTest
         public static List<String> recivedMsgs = new ArrayList<>();
 
         @Override
-        public void dataRead(byte[] data, IConnectionId connection)
+        public void dataRead(byte[] data, IConnectionId connection, 
+                SecureTCPServer server)
         {
             try
             {
