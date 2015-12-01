@@ -101,6 +101,9 @@ public class PerformanceTest
 
         avgReadWriteTime = 0.0f;
         nReadWriteTime = 0;
+        
+        ReadCallback.counter = 0;
+        CloseConnectionCallback.counter = 0;
     }
 
     @After
@@ -153,14 +156,16 @@ public class PerformanceTest
 
                             long start = System.currentTimeMillis();
                             client.write(data);
+//                            System.out.println("read");
                             byte[] incData = client.read();
+//                            System.out.println("after read");
                             long end = System.currentTimeMillis();
                             long diffrence = (end - start);
 
                             // calculate average read-write time
                             synchronized (lockReadWriteTime)
                             {
-                                avgReadWriteTime = countAvg(avgReadWriteTime, 
+                                avgReadWriteTime = countAvg(avgReadWriteTime,
                                         diffrence, ++nReadWriteTime);
                             }
 
@@ -235,16 +240,17 @@ public class PerformanceTest
             ClientThread t = new ClientThread(numberOfClientsPerThread);
             Future<?> f = service.submit(t);
             futures.add(f);
-//            service.execute(t);
-            
+
             while (service.getQueue().size() > numberOfThreads)
             {
                 Thread.sleep(1);
             }
         }
-
+        
         service.shutdown();
 
+        System.out.println("Wait for shutdown");
+        
         try
         {
             service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
@@ -253,6 +259,8 @@ public class PerformanceTest
         {
         }
 
+        boolean hasException = false;
+        
         for (Future<?> f : futures)
         {
             try
@@ -261,7 +269,7 @@ public class PerformanceTest
             }
             catch (ExecutionException ex)
             {
-                fail("Thread throws exception");
+                hasException = true;
             }
         }
 
@@ -269,43 +277,77 @@ public class PerformanceTest
         assertEquals(acceptedConnections.length,
                 futures.size() * numberOfClientsPerThread);
 
-        System.out.println("Stop Server");
         server.stop();
 
         Thread.sleep(20);
-        
+
         System.out.println("All accepted connections: "
                 + acceptedConnections.length);
-        
+
+        System.out.println("Closed connections: "
+                + CloseConnectionCallback.counter);
+
         System.out.println("All read-writes: " + nReadWriteTime);
-        System.out.println("Average read-write time: " + avgReadWriteTime +
-                " ms");
+        System.out.println("Average read-write time: " + avgReadWriteTime
+                + " ms");
 
         System.out.println("Good assertions: " + assertionGoods.get());
         System.out.println("Failed assertions: " + assertionFails.get());
+
+        float diffrenceInS = (System.currentTimeMillis() - start) / 1000.0f;
+        System.out.println("Total test time: " + diffrenceInS + " s");
+        
+        if (hasException)
+        {
+            fail("Client thread throws exception");
+        }
     }
 
     @Test
     public void oneClientAtTimeTest() throws Exception
     {
+        System.out.println("");
+        System.out.println("oneClientAtTimeTest");
         multipleConnectionsEchoServerTest(1, 1, 200);
     }
 
     @Test
     public void lowLoadoutPerformanceTest() throws Exception
     {
+        System.out.println("");
+        System.out.println("lowLoadoutPerformanceTest");
         multipleConnectionsEchoServerTest(4, 1, 500);
     }
 
     @Test
     public void mediumLoadoutPerformanceTest() throws Exception
     {
+        System.out.println("");
+        System.out.println("mediumLoadoutPerformanceTest");
         multipleConnectionsEchoServerTest(8, 4, 2000);
     }
-    
+
     @Test
     public void highLoadoutPerformanceTest() throws Exception
     {
+        System.out.println("");
+        System.out.println("highLoadoutPerformanceTest");
         multipleConnectionsEchoServerTest(8, 8, 2000);
+    }
+
+    @Test
+    public void highLoadoutLongPerformanceTest() throws Exception
+    {
+        System.out.println("");
+        System.out.println("highLoadoutLongPerformanceTest");
+        multipleConnectionsEchoServerTest(8, 8, 10000);
+    }
+
+    @Test
+    public void ExtremeLoadoutPerformanceTest() throws Exception
+    {
+        System.out.println("");
+        System.out.println("ExtremeLoadoutPerformanceTest");
+        multipleConnectionsEchoServerTest(12, 20, 2000);
     }
 }

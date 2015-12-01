@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite failures="0" time="1.652" errors="0" skipped="0" tests="6" name="pl.rcebula.crypto.secure_tcp.FastTestSuite">
+<testsuite failures="0" time="1.654" errors="0" skipped="0" tests="6" name="pl.rcebula.crypto.secure_tcp.FastTestSuite">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64"/>
@@ -60,10 +60,10 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase time="0.003" classname="pl.rcebula.crypto.secure_tcp.SecureTCPServerTest" name="testStartAndStop"/>
-  <testcase time="0.233" classname="pl.rcebula.crypto.secure_tcp.HandshakeRemotelyTest" name="HandshakeClientServerTest"/>
-  <testcase time="1.015" classname="pl.rcebula.crypto.secure_tcp.TimeoutTest" name="timeoutTest"/>
-  <testcase time="0.145" classname="pl.rcebula.crypto.secure_tcp.DataSendTest" name="dataSendTest"/>
-  <testcase time="0.145" classname="pl.rcebula.crypto.secure_tcp.CloseConnectionTest" name="CloseConnectionTest"/>
-  <testcase time="0.042" classname="pl.rcebula.crypto.secure_tcp.HandshakeLocallyTest" name="TestHandshakeLocally"/>
+  <testcase time="0.004" classname="pl.rcebula.crypto.secure_tcp.SecureTCPServerTest" name="testStartAndStop"/>
+  <testcase time="0.237" classname="pl.rcebula.crypto.secure_tcp.HandshakeRemotelyTest" name="HandshakeClientServerTest"/>
+  <testcase time="1.001" classname="pl.rcebula.crypto.secure_tcp.TimeoutTest" name="timeoutTest"/>
+  <testcase time="0.136" classname="pl.rcebula.crypto.secure_tcp.DataSendTest" name="dataSendTest"/>
+  <testcase time="0.153" classname="pl.rcebula.crypto.secure_tcp.CloseConnectionTest" name="CloseConnectionTest"/>
+  <testcase time="0.054" classname="pl.rcebula.crypto.secure_tcp.HandshakeLocallyTest" name="TestHandshakeLocally"/>
 </testsuite>

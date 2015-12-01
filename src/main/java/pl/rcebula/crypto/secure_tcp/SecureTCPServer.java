@@ -144,35 +144,45 @@ public class SecureTCPServer
         }
     }
 
-    private void closeUnsecureConnection(UnsecureConnectionTimeout uc)
+    private void closeUnsecureConnection(UnsecureConnectionTimeout uc,
+            Iterator<UnsecureConnectionTimeout> it)
     {
         uc.close();
         
-        synchronized (unsecureConnections)
+        it.remove();
+        closedUnsecureConnections.incrementAndGet();
+    }
+    
+    private void closeUnsecureConnection(UnsecureConnectionTimeout uc)
+    {
+        if (unsecureConnections.contains(uc))
         {
+            uc.close();
+
             unsecureConnections.remove(uc);
             closedUnsecureConnections.incrementAndGet();
         }
     }
 
+    private void closeSecureConnection(SecureConnectionTimeout sc,
+            Iterator<SecureConnectionTimeout> it)
+    {
+        sc.close();
+        closeConnectionCallback.closeConnection(sc);
+
+        it.remove();
+        closedSecureConnections.incrementAndGet();
+    }
+    
     private void closeSecureConnection(SecureConnectionTimeout sc)
     {
-        boolean contains;
-
-        synchronized (secureConnections)
-        {
-            contains = secureConnections.contains(sc);
-        }
-
-        if (contains)
+        if (secureConnections.contains(sc))
         {
             sc.close();
             closeConnectionCallback.closeConnection(sc);
-            synchronized (secureConnections)
-            {
-                secureConnections.remove(sc);
-                closedSecureConnections.incrementAndGet();
-            }
+            
+            secureConnections.remove(sc);
+            closedSecureConnections.incrementAndGet();
         }
     }
 
@@ -218,12 +228,12 @@ public class SecureTCPServer
                             }
                             else if (uc.isTimeout())
                             {
-                                closeUnsecureConnection(uc);
+                                closeUnsecureConnection(uc, it);
                             }
                         }
                         catch (Exception ex)
                         {
-                            closeUnsecureConnection(uc);
+                            closeUnsecureConnection(uc, it);
                         }
                     }
                 }
@@ -254,7 +264,7 @@ public class SecureTCPServer
                         }
                         catch (Exception ex)
                         {
-                            closeSecureConnection(sc);
+                            closeSecureConnection(sc, it);
                         }
                     }
                 }
