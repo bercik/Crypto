@@ -283,12 +283,12 @@ public class SecureTCPServer
 
             while (running.get())
             {
-                boolean hasDataToRead = false;
-                while (!hasDataToRead)
+                boolean hasDataToWrite = false;
+                while (!hasDataToWrite)
                 {
                     synchronized (dataToWrite)
                     {
-                        hasDataToRead = (dataToWrite.size() != 0);
+                        hasDataToWrite = (dataToWrite.size() != 0);
                     }
                 }
 
@@ -384,6 +384,8 @@ public class SecureTCPServer
                 {
                     stop();
                 }
+                
+                Thread.yield();
             }
         }
     }

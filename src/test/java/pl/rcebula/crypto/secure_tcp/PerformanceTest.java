@@ -162,7 +162,7 @@ public class PerformanceTest
                             long end = System.currentTimeMillis();
                             long diffrence = (end - start);
 
-                            // calculate average read-write time
+                            // calculate average read-write time 
                             synchronized (lockReadWriteTime)
                             {
                                 avgReadWriteTime = countAvg(avgReadWriteTime,
@@ -303,6 +303,7 @@ public class PerformanceTest
         }
     }
 
+    /*
     @Test
     public void oneClientAtTimeTest() throws Exception
     {
@@ -341,8 +342,9 @@ public class PerformanceTest
         System.out.println("");
         System.out.println("highLoadoutLongPerformanceTest");
         multipleConnectionsEchoServerTest(8, 8, 10000);
-    }
+    }*/
 
+    
     @Test
     public void ExtremeLoadoutPerformanceTest() throws Exception
     {
