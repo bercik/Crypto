@@ -47,10 +47,12 @@ public class SecureTCPServer
 
     // lista połączeń dla których nie został wykonany jeszcze handshake
     // i nie posiadają wymienionego klucza AES
-    private final List<UnsecureConnectionTimeout> unsecureConnections = new LinkedList<>();
+    private final List<UnsecureConnectionTimeout> unsecureConnections = 
+            new LinkedList<>();
     // lista połączeń dla których został wykonany handshake
     // i posiadają wymieniony klucz AES
-    private final List<SecureConnectionTimeout> secureConnections = new LinkedList<>();
+    private final List<SecureConnectionTimeout> secureConnections = 
+            new LinkedList<>();
 //    private final List<IConnection> connections = new LinkedList<>();
 
     // kolejka LIFO która przechowuje dane, które mają zostać wysłane
@@ -148,11 +150,11 @@ public class SecureTCPServer
             Iterator<UnsecureConnectionTimeout> it)
     {
         uc.close();
-        
+
         it.remove();
         closedUnsecureConnections.incrementAndGet();
     }
-    
+
     private void closeUnsecureConnection(UnsecureConnectionTimeout uc)
     {
         if (unsecureConnections.contains(uc))
@@ -173,14 +175,14 @@ public class SecureTCPServer
         it.remove();
         closedSecureConnections.incrementAndGet();
     }
-    
+
     private void closeSecureConnection(SecureConnectionTimeout sc)
     {
         if (secureConnections.contains(sc))
         {
             sc.close();
             closeConnectionCallback.closeConnection(sc);
-            
+
             secureConnections.remove(sc);
             closedSecureConnections.incrementAndGet();
         }
@@ -195,6 +197,9 @@ public class SecureTCPServer
 
             while (running.get())
             {
+                List<SecureConnectionTimeout> scToAdd
+                        = new LinkedList<>();
+
                 synchronized (unsecureConnections)
                 {
                     Iterator<UnsecureConnectionTimeout> it
@@ -216,15 +221,7 @@ public class SecureTCPServer
                                         = new SecureConnectionTimeout(sc,
                                                 secureConnectionTimeout);
 
-                                synchronized (secureConnections)
-                                {
-                                    secureConnections.add(sct);
-                                }
-
-                                synchronized (acceptedConnections)
-                                {
-                                    acceptedConnections.addLast(sct);
-                                }
+                                scToAdd.add(sct);
                             }
                             else if (uc.isTimeout())
                             {
@@ -236,6 +233,16 @@ public class SecureTCPServer
                             closeUnsecureConnection(uc, it);
                         }
                     }
+                }
+
+                synchronized (secureConnections)
+                {
+                    secureConnections.addAll(scToAdd);
+                }
+
+                synchronized (acceptedConnections)
+                {
+                    acceptedConnections.addAll(scToAdd);
                 }
 
                 synchronized (secureConnections)
@@ -254,7 +261,7 @@ public class SecureTCPServer
                             int bytesRead = sc.read(data);
                             if (bytesRead > 0)
                             {
-                                readCallback.dataRead(data.array, sc, 
+                                readCallback.dataRead(data.array, sc,
                                         SecureTCPServer.this);
                             }
                             else if (sc.isTimeout())
@@ -384,7 +391,7 @@ public class SecureTCPServer
                 {
                     stop();
                 }
-                
+
                 Thread.yield();
             }
         }
@@ -409,13 +416,13 @@ public class SecureTCPServer
             return acceptedConnections.removeFirst();
         }
     }
-    
+
     // non-blocking method that returns all accepted till this moment 
     // connections at once as array (return 0 element array if no connections)
     public IConnectionId[] acceptAll()
     {
         IConnectionId[] result = new IConnectionId[0];
-        
+
         synchronized (acceptedConnections)
         {
             if (acceptedConnections.size() != 0)
@@ -424,7 +431,7 @@ public class SecureTCPServer
                 acceptedConnections.clear();
             }
         }
-        
+
         return result;
     }
 
