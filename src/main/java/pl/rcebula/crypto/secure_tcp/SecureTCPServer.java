@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
@@ -36,11 +37,12 @@ public class SecureTCPServer
     private final AtomicBoolean running;
     
     private final AtomicBoolean hasAcceptedConnection;
+    private final AtomicBoolean hasDataToWrite;
 
     // zmienne używane do testów
     private final AtomicInteger closedSecureConnections;
     private final AtomicInteger closedUnsecureConnections;
-
+    
     // callback dla zdarzenia odczytania danych
     private final IReadCallback readCallback;
     // callback dla zdarzenia zamknięcia połączenia
@@ -49,11 +51,11 @@ public class SecureTCPServer
     // lista połączeń dla których nie został wykonany jeszcze handshake
     // i nie posiadają wymienionego klucza AES
     private final List<UnsecureConnectionTimeout> unsecureConnections = 
-            new LinkedList<>();
+            new CopyOnWriteArrayList<>();
     // lista połączeń dla których został wykonany handshake
     // i posiadają wymieniony klucz AES
     private final List<SecureConnectionTimeout> secureConnections = 
-            new LinkedList<>();
+            new CopyOnWriteArrayList<>();
 //    private final List<IConnection> connections = new LinkedList<>();
 
     // kolejka LIFO która przechowuje dane, które mają zostać wysłane
@@ -80,6 +82,7 @@ public class SecureTCPServer
         this.closedUnsecureConnections = new AtomicInteger(0);
         
         this.hasAcceptedConnection = new AtomicBoolean(false);
+        this.hasDataToWrite = new AtomicBoolean(false);
 
         this.readCallback = readCallback;
         this.closeConnectionCallback = closeConnectionCallback;
@@ -118,7 +121,6 @@ public class SecureTCPServer
         {
             running.set(false);
 
-            synchronized (unsecureConnections)
             {
                 Iterator<UnsecureConnectionTimeout> it
                         = unsecureConnections.iterator();
@@ -126,12 +128,11 @@ public class SecureTCPServer
                 while (it.hasNext())
                 {
                     UnsecureConnectionTimeout uc = it.next();
-                    
-                    closeUnsecureConnection(uc, it);
+
+                    closeUnsecureConnection(uc);
                 }
             }
 
-            synchronized (secureConnections)
             {
                 Iterator<SecureConnectionTimeout> it
                         = secureConnections.iterator();
@@ -139,8 +140,8 @@ public class SecureTCPServer
                 while (it.hasNext())
                 {
                     SecureConnectionTimeout sc = it.next();
-                    
-                    closeSecureConnection(sc, it);
+
+                    closeSecureConnection(sc);
                 }
             }
 
@@ -150,46 +151,38 @@ public class SecureTCPServer
         {
         }
     }
-
-    private void closeUnsecureConnection(UnsecureConnectionTimeout uc,
-            Iterator<UnsecureConnectionTimeout> it)
+    
+    private void removeUnsecureConnection(UnsecureConnectionTimeout uc)
     {
-        uc.close();
-
-        it.remove();
-        closedUnsecureConnections.incrementAndGet();
+        unsecureConnections.remove(uc);
     }
 
     private void closeUnsecureConnection(UnsecureConnectionTimeout uc)
     {
-        if (unsecureConnections.contains(uc))
+        synchronized (unsecureConnections)
         {
-            uc.close();
+            if (unsecureConnections.contains(uc))
+            {
+                uc.close();
 
-            unsecureConnections.remove(uc);
-            closedUnsecureConnections.incrementAndGet();
+                unsecureConnections.remove(uc);
+                closedUnsecureConnections.incrementAndGet();
+            }
         }
-    }
-
-    private void closeSecureConnection(SecureConnectionTimeout sc,
-            Iterator<SecureConnectionTimeout> it)
-    {
-        sc.close();
-        closeConnectionCallback.closeConnection(sc);
-
-        it.remove();
-        closedSecureConnections.incrementAndGet();
     }
 
     private void closeSecureConnection(SecureConnectionTimeout sc)
     {
-        if (secureConnections.contains(sc))
+        synchronized (secureConnections)
         {
-            sc.close();
-            closeConnectionCallback.closeConnection(sc);
+            if (secureConnections.contains(sc))
+            {
+                sc.close();
+                closeConnectionCallback.closeConnection(sc);
 
-            secureConnections.remove(sc);
-            closedSecureConnections.incrementAndGet();
+                secureConnections.remove(sc);
+                closedSecureConnections.incrementAndGet();
+            }
         }
     }
 
@@ -205,7 +198,6 @@ public class SecureTCPServer
                 List<SecureConnectionTimeout> scToAdd
                         = new LinkedList<>();
 
-                synchronized (unsecureConnections)
                 {
                     Iterator<UnsecureConnectionTimeout> it
                             = unsecureConnections.iterator();
@@ -213,36 +205,39 @@ public class SecureTCPServer
                     while (it.hasNext())
                     {
                         UnsecureConnectionTimeout uc = it.next();
-                        try
+                        if (!uc.getConnection().isReady())
                         {
-                            uc.read(new IConnection.ByteArray());
-                            UnsecureConnection connection = uc.getConnection();
-                            if (connection.isSecureConnectionEstablished(uc))
+                            try
                             {
-                                SecureConnection sc
-                                        = connection.getSecureConnection();
+                                uc.read(new IConnection.ByteArray());
+                                UnsecureConnection connection = 
+                                        uc.getConnection();
+                                
+                                if (connection.isReady())
+                                {
+                                    SecureConnection sc
+                                            = connection.getSecureConnection();
 
-                                SecureConnectionTimeout sct
-                                        = new SecureConnectionTimeout(sc,
-                                                secureConnectionTimeout);
+                                    SecureConnectionTimeout sct
+                                            = new SecureConnectionTimeout(sc,
+                                                    secureConnectionTimeout);
 
-                                scToAdd.add(sct);
+                                    scToAdd.add(sct);
+                                    secureConnections.add(sct);
+                                    
+                                    connection.establishConnection(uc);
+                                }
+                                else if (uc.isTimeout())
+                                {
+                                    closeUnsecureConnection(uc);
+                                }
                             }
-                            else if (uc.isTimeout())
+                            catch (Exception ex)
                             {
-                                closeUnsecureConnection(uc, it);
+                                closeUnsecureConnection(uc);
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            closeUnsecureConnection(uc, it);
                         }
                     }
-                }
-
-                synchronized (secureConnections)
-                {
-                    secureConnections.addAll(scToAdd);
                 }
 
                 synchronized (acceptedConnections)
@@ -251,7 +246,6 @@ public class SecureTCPServer
                     hasAcceptedConnection.set(true);
                 }
 
-                synchronized (secureConnections)
                 {
                     Iterator<SecureConnectionTimeout> it
                             = secureConnections.iterator();
@@ -277,7 +271,7 @@ public class SecureTCPServer
                         }
                         catch (Exception ex)
                         {
-                            closeSecureConnection(sc, it);
+                            closeSecureConnection(sc);
                         }
                     }
                 }
@@ -296,71 +290,80 @@ public class SecureTCPServer
 
             while (running.get())
             {
-                boolean hasDataToWrite = false;
-                while (!hasDataToWrite)
+                while (!hasDataToWrite.get())
                 {
-                    synchronized (dataToWrite)
-                    {
-                        hasDataToWrite = (dataToWrite.size() != 0);
-                    }
                 }
-
+                
                 IConnectionId connection;
                 byte[] data;
                 boolean closeAfterWrite;
-
+                Tuple tuple;
+                
                 synchronized (dataToWrite)
                 {
-                    Tuple tuple = dataToWrite.removeFirst();
-                    connection = tuple.getConnection();
-                    data = tuple.getData();
-                    closeAfterWrite = tuple.getCloseAfterWrite();
+                    hasDataToWrite.set(dataToWrite.size() > 1);
+                    
+                    tuple = dataToWrite.removeFirst();
                 }
+                
+                connection = tuple.getConnection();
+                data = tuple.getData();
+                closeAfterWrite = tuple.getCloseAfterWrite();
 
-                int index;
-
-                synchronized (unsecureConnections)
+                boolean alreadyWrite = false;
+                
                 {
-                    index = unsecureConnections.indexOf(connection);
-                    if (index != -1)
+                    Iterator<SecureConnectionTimeout> it = 
+                            secureConnections.iterator();
+                    
+                    while (it.hasNext())
                     {
-                        UnsecureConnectionTimeout uc
-                                = unsecureConnections.get(index);
-                        try
+                        SecureConnectionTimeout sct = it.next();
+                        
+                        if (sct == connection)
                         {
-                            uc.write(data);
-                            if (closeAfterWrite)
-                            {
-                                unsecureConnections.remove(uc);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            closeUnsecureConnection(uc);
-                        }
-                    }
-                }
-
-                if (index == -1)
-                {
-                    synchronized (secureConnections)
-                    {
-                        index = secureConnections.indexOf(connection);
-                        if (index != -1)
-                        {
-                            SecureConnectionTimeout sc
-                                    = secureConnections.get(index);
+                            alreadyWrite = true;
+                            
                             try
                             {
-                                sc.write(data);
+                                sct.write(data);
+                                
                                 if (closeAfterWrite)
                                 {
-                                    closeSecureConnection(sc);
+                                    closeSecureConnection(sct);
                                 }
                             }
                             catch (Exception ex)
                             {
-                                closeSecureConnection(sc);
+                                closeSecureConnection(sct);
+                            }
+                        }
+                    }
+                }
+                
+                if (!alreadyWrite)
+                {
+                    Iterator<UnsecureConnectionTimeout> it = 
+                            unsecureConnections.iterator();
+                    
+                    while (it.hasNext())
+                    {
+                        UnsecureConnectionTimeout uct = it.next();
+                        
+                        if (uct == connection)
+                        {
+                            try
+                            {
+                                uct.write(data);
+                                
+                                if (closeAfterWrite)
+                                {
+                                    removeUnsecureConnection(uct);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                closeUnsecureConnection(uct);
                             }
                         }
                     }
@@ -388,12 +391,9 @@ public class SecureTCPServer
                     UnsecureConnection uc = new UnsecureConnection(socket,
                                 SecureTCPServer.this, rsakc);
                     
-                    synchronized (unsecureConnections)
-                    {
-                        unsecureConnections.add(
-                                new UnsecureConnectionTimeout(uc,
-                                        unsecureConnectionTimeout));
-                    }
+                    unsecureConnections.add(
+                            new UnsecureConnectionTimeout(uc,
+                                    unsecureConnectionTimeout));
                 }
                 catch (Exception ex)
                 {
@@ -443,7 +443,8 @@ public class SecureTCPServer
     {
         synchronized (dataToWrite)
         {
-            dataToWrite.addLast(new Tuple(connection, data));
+            dataToWrite.addLast(new Tuple(connection, data, false));
+            hasDataToWrite.set(true);
         }
     }
 
@@ -453,6 +454,7 @@ public class SecureTCPServer
         synchronized (dataToWrite)
         {
             dataToWrite.addLast(new Tuple(connection, data, closeAfterWrite));
+            hasDataToWrite.set(true);
         }
     }
 
@@ -461,11 +463,6 @@ public class SecureTCPServer
         private final IConnectionId connection;
         private final byte[] data;
         private final boolean closeAfterWrite;
-
-        public Tuple(IConnectionId connection, byte[] data)
-        {
-            this(connection, data, false);
-        }
 
         public Tuple(IConnectionId connection, byte[] data,
                 boolean closeAfterWrite)

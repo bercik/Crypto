@@ -28,9 +28,9 @@ public class MultipleConnectionsTest
 
     private final AtomicInteger assertionFails = new AtomicInteger(0);
     private final AtomicInteger assertionGoods = new AtomicInteger(0);
-    private final AtomicInteger numberOfWriteReads
+    private final AtomicInteger serverWriteReads
             = new AtomicInteger(0);
-    private final AtomicInteger numberOfWrites
+    private final AtomicInteger clientWrites
             = new AtomicInteger(0);
 
     private float avgReadWriteTime = 0.0f;
@@ -47,7 +47,7 @@ public class MultipleConnectionsTest
         {
             try
             {
-                numberOfWriteReads.incrementAndGet();
+                serverWriteReads.incrementAndGet();
                 server.write(connection, data);
 
                 counter++;
@@ -91,8 +91,8 @@ public class MultipleConnectionsTest
         
         assertionFails.set(0);
         assertionGoods.set(0);
-        numberOfWriteReads.set(0);
-        numberOfWrites.set(0);
+        serverWriteReads.set(0);
+        clientWrites.set(0);
 
         avgReadWriteTime = 0.0f;
         nReadWriteTime = 0;
@@ -154,7 +154,7 @@ public class MultipleConnectionsTest
                             long start = System.currentTimeMillis();
                             client.write(data);
 
-                            numberOfWrites.incrementAndGet();
+                            clientWrites.incrementAndGet();
 
 //                            System.out.println("read");
                             byte[] incData = client.read();
@@ -263,7 +263,7 @@ public class MultipleConnectionsTest
 
         server.stop();
 
-        Thread.sleep(50);
+        Thread.sleep(150);
 
         IConnectionId[] acceptedConnections = server.acceptAll();
         
@@ -289,6 +289,6 @@ public class MultipleConnectionsTest
         System.out.println("Total test time: " + diffrenceInS + " s");
 
         assertEquals("Number of Writes",
-                numberOfWriteReads.get(), numberOfWrites.get());
+                serverWriteReads.get(), clientWrites.get());
     }
 }

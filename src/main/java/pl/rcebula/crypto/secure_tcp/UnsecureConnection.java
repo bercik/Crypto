@@ -85,28 +85,23 @@ class UnsecureConnection extends Connection
         outputStream.write(data);
     }
     
-    public boolean isSecureConnectionEstablished(
+    public void establishConnection(
             UnsecureConnectionTimeout referenceToWrite) throws Exception
     {
-        // jeżeli otrzymano klucz AES od klienta to odsyłamy mu nasz podpis
-        // klucza
-        if (ready)
-        {
-            RSA rsa = new RSA();
-            byte[] signKey = rsa.sign(aeskc.getKey().getEncoded(), 
-                    rsakc.getPrivateKey());
-            byte[] signIv = rsa.sign(aeskc.getIv().getIV(), 
-                    rsakc.getPrivateKey());
+        // odsyłamy do klienta nasz podpis jego klucza
+        RSA rsa = new RSA();
+        byte[] signKey = rsa.sign(aeskc.getKey().getEncoded(), 
+                rsakc.getPrivateKey());
+        byte[] signIv = rsa.sign(aeskc.getIv().getIV(), 
+                rsakc.getPrivateKey());
 
-            secureTCPServer.write(referenceToWrite, signKey);
-            secureTCPServer.write(referenceToWrite, signIv, true);
-            
-            ready = false;
-            
-            return true;
-        }
-        
-        return false;
+        secureTCPServer.write(referenceToWrite, signKey);
+        secureTCPServer.write(referenceToWrite, signIv, true);
+    }
+
+    public boolean isReady()
+    {
+        return ready;
     }
     
     public SecureConnection getSecureConnection() throws IOException

@@ -70,10 +70,4 @@ public class DurabilityTest
         new MultipleConnectionsTest().
                 multipleConnectionsEchoServerTest(8, 8, 30000);
     }*/
-
-    // TODO add test methods here.
-    // The methods must be annotated with annotation @Test. For example:
-    //
-    // @Test
-    // public void hello() {}
 }

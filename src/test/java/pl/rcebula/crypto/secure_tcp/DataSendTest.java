@@ -119,8 +119,11 @@ public class DataSendTest
         secureTCPServer.stop();
         secureTCPClient.close();
         secureTCPClient1.close();
-
-        assertEquals(messages.length, ReadCallback.counter);
+        
+        
+        assertEquals(0, secureTCPServer.getClosedUnsecureConnections());
+        assertEquals(2, secureTCPServer.getClosedSecureConnections());
+        assertEquals("Ilość wiadomości", messages.length, ReadCallback.counter);
         assertEquals(CloseConnectionCallback.counter, 2);
         List<String> msgs = Arrays.asList(messages);
         assertTrue(msgs.containsAll(ReadCallback.recivedMsgs));
