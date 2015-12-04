@@ -13,7 +13,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import pl.rcebula.crypto.encryption.AES;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
 
 /**
@@ -35,6 +34,8 @@ public class SecureTCPServer
     private final RSAKeyContainer rsakc;
 
     private final AtomicBoolean running;
+    
+    private final AtomicBoolean hasAcceptedConnection;
 
     // zmienne używane do testów
     private final AtomicInteger closedSecureConnections;
@@ -77,6 +78,8 @@ public class SecureTCPServer
 
         this.closedSecureConnections = new AtomicInteger(0);
         this.closedUnsecureConnections = new AtomicInteger(0);
+        
+        this.hasAcceptedConnection = new AtomicBoolean(false);
 
         this.readCallback = readCallback;
         this.closeConnectionCallback = closeConnectionCallback;
@@ -123,7 +126,8 @@ public class SecureTCPServer
                 while (it.hasNext())
                 {
                     UnsecureConnectionTimeout uc = it.next();
-                    uc.close();
+                    
+                    closeUnsecureConnection(uc, it);
                 }
             }
 
@@ -135,7 +139,8 @@ public class SecureTCPServer
                 while (it.hasNext())
                 {
                     SecureConnectionTimeout sc = it.next();
-                    sc.close();
+                    
+                    closeSecureConnection(sc, it);
                 }
             }
 
@@ -243,6 +248,7 @@ public class SecureTCPServer
                 synchronized (acceptedConnections)
                 {
                     acceptedConnections.addAll(scToAdd);
+                    hasAcceptedConnection.set(true);
                 }
 
                 synchronized (secureConnections)
@@ -377,11 +383,13 @@ public class SecureTCPServer
                 try
                 {
                     Socket socket = serverSocket.accept();
+                    socket.setSoTimeout(secureConnectionTimeout);
+                    
+                    UnsecureConnection uc = new UnsecureConnection(socket,
+                                SecureTCPServer.this, rsakc);
+                    
                     synchronized (unsecureConnections)
                     {
-                        UnsecureConnection uc = new UnsecureConnection(socket,
-                                SecureTCPServer.this, rsakc);
-
                         unsecureConnections.add(
                                 new UnsecureConnectionTimeout(uc,
                                         unsecureConnectionTimeout));
@@ -400,19 +408,15 @@ public class SecureTCPServer
     // blocking method that return one connection
     public IConnectionId accept()
     {
-        boolean hasAcceptedConnection = false;
-        while (!hasAcceptedConnection)
+        while (!hasAcceptedConnection.get())
         {
-            synchronized (acceptedConnections)
-            {
-                hasAcceptedConnection = (acceptedConnections.size() != 0);
-            }
-
             Thread.yield();
         }
 
         synchronized (acceptedConnections)
         {
+            hasAcceptedConnection.set(acceptedConnections.size() > 1);
+            
             return acceptedConnections.removeFirst();
         }
     }

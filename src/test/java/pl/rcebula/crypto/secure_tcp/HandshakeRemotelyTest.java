@@ -99,6 +99,6 @@ public class HandshakeRemotelyTest
         secureTCPClient1.close();
         
         assertEquals(ReadCallback.counter, 0);
-        assertEquals(CloseConnectionCallback.counter, 0);
+        assertEquals(CloseConnectionCallback.counter, 2);
     }
 }

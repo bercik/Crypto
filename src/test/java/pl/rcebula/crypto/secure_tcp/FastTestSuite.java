@@ -19,7 +19,6 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses(
 {
-    //pl.rcebula.crypto.secure_tcp.PerformanceTest.class, 
     pl.rcebula.crypto.secure_tcp.SecureTCPServerTest.class, 
     pl.rcebula.crypto.secure_tcp.HandshakeRemotelyTest.class, 
     pl.rcebula.crypto.secure_tcp.TimeoutTest.class, 

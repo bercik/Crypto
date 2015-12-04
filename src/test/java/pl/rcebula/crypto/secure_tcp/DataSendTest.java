@@ -121,7 +121,7 @@ public class DataSendTest
         secureTCPClient1.close();
 
         assertEquals(messages.length, ReadCallback.counter);
-        assertEquals(0, CloseConnectionCallback.counter);
+        assertEquals(CloseConnectionCallback.counter, 2);
         List<String> msgs = Arrays.asList(messages);
         assertTrue(msgs.containsAll(ReadCallback.recivedMsgs));
     }
