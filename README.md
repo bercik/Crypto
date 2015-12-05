@@ -46,7 +46,7 @@ For now if you want to use Crypto in your maven project, you can go to pom.xml f
   <dependency>
     <groupId>com.github.bercik</groupId>
     <artifactId>Crypto</artifactId>
-    <version>v0.1</version>
+    <version>v0.1.1</version>
   </dependency>
 </dependencies>
 ```
