@@ -1,7 +1,12 @@
 # Crypto
-Java package to RSA/AES encryption, RSA keys loading from files and secure TCP connection
+Java package containing two modules:
 
-## Steps to generate and read RSA keys into our JAVA application:
+1. **encryption**: RSA/AES encryption, RSA keys loading from resources, RSA with SHA-256 message signing and checking, AES key generator, SHA-256 hash
+2. **secure_tcp**: secure TCP connection, SecureTCPServer, SecureTCPClient
+
+## 1. Encryption
+
+### Steps to generate and read RSA keys into our JAVA application:
 
 1. In Maven project pom.xml file add resource directory as below (filtering false is important to tell maven to not change the files while building project):
 ```xml
@@ -23,3 +28,5 @@ String publicKeyResourceName = "/public_key.der";
 RSAKeyContainer instance = 
         new RSAKeyContainer(publicKeyResourceName, privateKeyResourceName);
 ```
+
+### Tutorial how to use Crypto.encryption
