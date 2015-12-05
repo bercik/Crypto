@@ -103,21 +103,77 @@ public static void RSATest() throws Exception
 ```java
 public static void AESTest() throws Exception
 {
-    // instance of AES class
-    AES aes = new AES();
-    // aes key container class, key will be generated when constructor calls
-    // there is also constructor version, when you can give your key and 
-    // initialization vector
-    AESKeyContainer aeskc = new AESKeyContainer();
-    // some data you want to encrypt
-    byte[] data = new byte[] { 1, 2, 3, 4 };
-    // encrypt data using key and iv
-    byte[] encrypted = aes.encrypt(data, aeskc.getKey(), aeskc.getIv());
-    // decrypt encrypted data
-    byte[] decrypted = aes.decrypt(encrypted, aeskc.getKey(), 
-            aeskc.getIv());
-    
-    // check if data and decrypted arrays are the same
-    System.out.println(assertArrayEquals(data, decrypted));
+  // instance of AES class
+  AES aes = new AES();
+  // aes key container class, key will be generated when constructor calls
+  // there is also constructor version, when you can give your key and 
+  // initialization vector
+  AESKeyContainer aeskc = new AESKeyContainer();
+  // some data you want to encrypt
+  byte[] data = new byte[] { 1, 2, 3, 4 };
+  // encrypt data using key and iv
+  byte[] encrypted = aes.encrypt(data, aeskc.getKey(), aeskc.getIv());
+  // decrypt encrypted data
+  byte[] decrypted = aes.decrypt(encrypted, aeskc.getKey(), 
+          aeskc.getIv());
+  
+  // check if data and decrypted arrays are the same
+  System.out.println(assertArrayEquals(data, decrypted));
+}
+```
+### SHA
+```java
+public static void SHATest()
+{
+  // instance of sha class
+  SHA sha = new SHA();
+  // some data we want to hash
+  byte[] data = new byte[] { 1, 2, 3, 4 };
+  // hash data
+  byte[] hash = sha.hash(data);
+  // in this example we will check that data hashed is always the same
+  byte[] hash2 = sha.hash(data);
+  
+  System.out.println(assertArrayEquals(hash, hash2));
+}
+```
+### RSA with SHA-256 sign
+```java
+public static void RSASignTest() throws Exception
+{
+  // instance of RSA class
+  RSA rsa = new RSA();
+  // rsa key container
+  RSAKeyContainer rsakc = new RSAKeyContainer("/public_key.der", 
+          "/private_key.der");
+  // some data to sign
+  byte[] data = new byte[] { 1, 2, 3, 4 };
+  // create sign
+  byte[] sign = rsa.sign(data, rsakc.getPrivateKey());
+  // check sign. This will throw error if sign is bad
+  rsa.checkSign(sign, data, rsakc.getPublicKey());
+  // change something in sign so checkSign function will throw error
+  sign[0] = (byte)(~sign[0] & 0xFF);
+  try
+  {
+    rsa.checkSign(sign, data, rsakc.getPublicKey());
+  }
+  catch (RSA.CheckSignError er)
+  {
+    System.out.println("RSA.CheckSignError catched");
+  }
+}
+```
+### Algorithms names
+If you want you can check algorithms used by simply printing values from Names class. For Example:
+```java
+public static void printNames()
+{
+  System.out.println(Names.AES_ALGORITHM_NAME);
+  System.out.println(Names.AES_KEY_SIZE);
+  System.out.println(Names.AES_PADDING_ALGORITHM_NAME);
+  System.out.println(Names.HASH_ALGORITHM_NAME);
+  System.out.println(Names.RSA_ALGORITHM_NAME);
+  System.out.println(Names.RSA_SIGN_ALGORITHM_NAME);
 }
 ```
