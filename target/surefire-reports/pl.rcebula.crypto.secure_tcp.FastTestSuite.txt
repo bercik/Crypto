@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: pl.rcebula.crypto.secure_tcp.FastTestSuite
--------------------------------------------------------------------------------
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.287 sec

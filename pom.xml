@@ -22,10 +22,6 @@
     <build>
         <resources>
             <resource>
-                <directory>src/main/java/res</directory>
-                <filtering>false</filtering>
-            </resource>
-            <resource>
                 <directory>src/test/java/res</directory>
                 <filtering>false</filtering>
             </resource>

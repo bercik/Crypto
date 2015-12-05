@@ -14,7 +14,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public final class SHA
 {
-    public static byte[] hash(byte[] toHash)
+    public byte[] hash(byte[] toHash)
     {
         try
         {
