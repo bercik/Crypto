@@ -5,6 +5,7 @@
  */
 package pl.rcebula.crypto.secure_tcp;
 
+import pl.rcebula.crypto.secure_tcp.utils.PortGiver;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -72,7 +73,7 @@ public class HandshakeRemotelyTest
     @Test
     public void HandshakeClientServerTest() throws Exception
     {
-        int port = 14002;
+        int port = PortGiver.getPort();
         RSAKeyContainer serverRsakc = new RSAKeyContainer("/public_key.der",
                 "/private_key.der");
         SecureTCPServer secureTCPServer = new SecureTCPServer(port, serverRsakc,

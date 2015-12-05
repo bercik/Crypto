@@ -24,7 +24,8 @@ import org.junit.runners.Suite;
     pl.rcebula.crypto.secure_tcp.TimeoutTest.class, 
     pl.rcebula.crypto.secure_tcp.DataSendTest.class, 
     pl.rcebula.crypto.secure_tcp.CloseConnectionTest.class, 
-    pl.rcebula.crypto.secure_tcp.HandshakeLocallyTest.class
+    pl.rcebula.crypto.secure_tcp.HandshakeLocallyTest.class,
+    pl.rcebula.crypto.secure_tcp.BlockingClientTest.class
 })
 public class FastTestSuite
 {

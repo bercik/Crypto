@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite failures="1" time="60.278" errors="0" skipped="0" tests="1" name="pl.rcebula.crypto.secure_tcp.DurabilityTest">
+<testsuite failures="1" time="240.27" errors="0" skipped="0" tests="1" name="pl.rcebula.crypto.secure_tcp.DurabilityTest">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64"/>
@@ -60,13 +60,13 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase time="60.234" classname="pl.rcebula.crypto.secure_tcp.DurabilityTest" name="mediumLoadoutLongPerformanceTest">
-    <failure message="Number of Writes expected:&lt;3777&gt; but was:&lt;3781&gt;" type="java.lang.AssertionError">java.lang.AssertionError: Number of Writes expected:&lt;3777&gt; but was:&lt;3781&gt;
+  <testcase time="240.234" classname="pl.rcebula.crypto.secure_tcp.DurabilityTest" name="mediumLoadoutLongPerformanceTest">
+    <failure message="Number of Writes expected:&lt;15488&gt; but was:&lt;15493&gt;" type="java.lang.AssertionError">java.lang.AssertionError: Number of Writes expected:&lt;15488&gt; but was:&lt;15493&gt;
 	at org.junit.Assert.fail(Assert.java:93)
 	at org.junit.Assert.failNotEquals(Assert.java:647)
 	at org.junit.Assert.assertEquals(Assert.java:128)
 	at org.junit.Assert.assertEquals(Assert.java:472)
-	at pl.rcebula.crypto.secure_tcp.MultipleConnectionsTest.multipleConnectionsEchoServerTest(MultipleConnectionsTest.java:291)
+	at pl.rcebula.crypto.secure_tcp.MultipleConnectionsTest.multipleConnectionsEchoServerTest(MultipleConnectionsTest.java:292)
 	at pl.rcebula.crypto.secure_tcp.DurabilityTest.mediumLoadoutLongPerformanceTest(DurabilityTest.java:61)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
@@ -104,15 +104,15 @@
 </failure>
     <system-out>
 mediumLoadoutLongPerformanceTest
-All accepted connections: 1207
-Closed connections: 1207
-All read-writes: 3777
-Average read-write time: 91.748505 ms
-Still running (aproximetly): 4
-Completed (aproximetly): 299
-Good assertions: 3777
+All accepted connections: 4900
+Closed connections: 4900
+All read-writes: 15486
+Average read-write time: 91.04908 ms
+Still running (aproximetly): 7
+Completed (aproximetly): 1219
+Good assertions: 15486
 Failed assertions: 0
-Total test time: 60.151 s
+Total test time: 240.151 s
 </system-out>
   </testcase>
 </testsuite>

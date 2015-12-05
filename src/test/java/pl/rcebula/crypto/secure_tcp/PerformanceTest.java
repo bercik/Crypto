@@ -67,18 +67,16 @@ public class PerformanceTest
         System.out.println("");
         System.out.println("veryHighLoadoutPerformanceTest");
         new MultipleConnectionsTest().
-                multipleConnectionsEchoServerTest(8, 20, 10000);
+                multipleConnectionsEchoServerTest(8, 20, 12000);
      }
     
-    /* 
-     * This test gives in result propably server writing thread blocked
-     * (possibly cause number of threads used)
-     *
+    /*
      @Test
      public void ExtremeLoadoutPerformanceTest() throws Exception
      {
-     System.out.println("");
-     System.out.println("ExtremeLoadoutPerformanceTest");
-     multipleConnectionsEchoServerTest(12, 20, 6000);
+        System.out.println("");
+        System.out.println("ExtremeLoadoutPerformanceTest");
+        new MultipleConnectionsTest().
+                multipleConnectionsEchoServerTest(12, 20, 12000);
      }*/
 }

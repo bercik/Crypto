@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite failures="0" time="1.73" errors="0" skipped="0" tests="6" name="pl.rcebula.crypto.secure_tcp.FastTestSuite">
+<testsuite failures="0" time="2.287" errors="0" skipped="0" tests="7" name="pl.rcebula.crypto.secure_tcp.FastTestSuite">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64"/>
@@ -60,10 +60,11 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase time="0.007" classname="pl.rcebula.crypto.secure_tcp.SecureTCPServerTest" name="testStartAndStop"/>
-  <testcase time="0.239" classname="pl.rcebula.crypto.secure_tcp.HandshakeRemotelyTest" name="HandshakeClientServerTest"/>
-  <testcase time="1.018" classname="pl.rcebula.crypto.secure_tcp.TimeoutTest" name="timeoutTest"/>
-  <testcase time="0.17" classname="pl.rcebula.crypto.secure_tcp.DataSendTest" name="dataSendTest"/>
-  <testcase time="0.181" classname="pl.rcebula.crypto.secure_tcp.CloseConnectionTest" name="CloseConnectionTest"/>
-  <testcase time="0.044" classname="pl.rcebula.crypto.secure_tcp.HandshakeLocallyTest" name="TestHandshakeLocally"/>
+  <testcase time="0.008" classname="pl.rcebula.crypto.secure_tcp.SecureTCPServerTest" name="testStartAndStop"/>
+  <testcase time="0.204" classname="pl.rcebula.crypto.secure_tcp.HandshakeRemotelyTest" name="HandshakeClientServerTest"/>
+  <testcase time="1.027" classname="pl.rcebula.crypto.secure_tcp.TimeoutTest" name="timeoutTest"/>
+  <testcase time="0.148" classname="pl.rcebula.crypto.secure_tcp.DataSendTest" name="dataSendTest"/>
+  <testcase time="0.224" classname="pl.rcebula.crypto.secure_tcp.CloseConnectionTest" name="CloseConnectionTest"/>
+  <testcase time="0.04" classname="pl.rcebula.crypto.secure_tcp.HandshakeLocallyTest" name="TestHandshakeLocally"/>
+  <testcase time="0.56" classname="pl.rcebula.crypto.secure_tcp.BlockingClientTest" name="blockingClientTest"/>
 </testsuite>

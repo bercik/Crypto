@@ -5,6 +5,7 @@
  */
 package pl.rcebula.crypto.secure_tcp;
 
+import pl.rcebula.crypto.secure_tcp.utils.PortGiver;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -58,7 +59,7 @@ public class SecureTCPServerTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        int port = 14000;
+        int port = PortGiver.getPort();
         RSAKeyContainer rsakc = 
                 new RSAKeyContainer("/public_key.der", "/private_key.der");
         instance = new SecureTCPServer(port, rsakc, 1000, 500, 

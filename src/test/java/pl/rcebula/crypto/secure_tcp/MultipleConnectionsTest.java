@@ -5,6 +5,7 @@
  */
 package pl.rcebula.crypto.secure_tcp;
 
+import pl.rcebula.crypto.secure_tcp.utils.PortGiver;
 import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -22,7 +23,7 @@ import pl.rcebula.crypto.encryption.RSAKeyContainer;
  */
 public class MultipleConnectionsTest
 {
-    private final int port = 14005;
+    private final int port = PortGiver.getPort();
     private RSAKeyContainer rsakcServer;
     private RSAKeyContainer rsakcClient;
 

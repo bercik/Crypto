@@ -5,6 +5,7 @@
  */
 package pl.rcebula.crypto.secure_tcp;
 
+import pl.rcebula.crypto.secure_tcp.utils.PortGiver;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -92,7 +93,7 @@ public class DataSendTest
     @Test
     public void dataSendTest() throws Exception
     {
-        int port = 14003;
+        int port = PortGiver.getPort();
         RSAKeyContainer serverRsakc = new RSAKeyContainer("/public_key.der",
                 "/private_key.der");
         SecureTCPServer secureTCPServer = new SecureTCPServer(port, serverRsakc,

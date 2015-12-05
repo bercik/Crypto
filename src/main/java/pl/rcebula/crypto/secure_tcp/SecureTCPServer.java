@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
 
 /**
@@ -35,14 +37,23 @@ public class SecureTCPServer
     private final RSAKeyContainer rsakc;
 
     private final AtomicBoolean running;
-    
+
     private final AtomicBoolean hasAcceptedConnection;
     private final AtomicBoolean hasDataToWrite;
 
     // zmienne używane do testów
     private final AtomicInteger closedSecureConnections;
     private final AtomicInteger closedUnsecureConnections;
-    
+
+    // zmienne dla watchdoga, które wątek piszący "karmi" co jakiś czas, 
+    // inaczej watchdog zamyka połączenie aktualnie wykonywane w wątku
+    // karmienie polega na ustawianiu wartości w ms, którą następnie watchdog 
+    // dekrementuje i jeżeli jej wartość spadnie poniżej zera to zamyka socket
+    private final AtomicInteger writeThreadWatchDogCounter = 
+            new AtomicInteger(0);
+    private IConnection writeThreadCurrentConnection = null;
+    private final Object writeThreadCurrentConnectionLock = new Object();
+
     // callback dla zdarzenia odczytania danych
     private final IReadCallback readCallback;
     // callback dla zdarzenia zamknięcia połączenia
@@ -50,13 +61,12 @@ public class SecureTCPServer
 
     // lista połączeń dla których nie został wykonany jeszcze handshake
     // i nie posiadają wymienionego klucza AES
-    private final List<UnsecureConnectionTimeout> unsecureConnections = 
-            new CopyOnWriteArrayList<>();
+    private final List<UnsecureConnectionTimeout> unsecureConnections
+            = new CopyOnWriteArrayList<>();
     // lista połączeń dla których został wykonany handshake
     // i posiadają wymieniony klucz AES
-    private final List<SecureConnectionTimeout> secureConnections = 
-            new CopyOnWriteArrayList<>();
-//    private final List<IConnection> connections = new LinkedList<>();
+    private final List<SecureConnectionTimeout> secureConnections
+            = new CopyOnWriteArrayList<>();
 
     // kolejka LIFO która przechowuje dane, które mają zostać wysłane
     private final LinkedList<Tuple> dataToWrite = new LinkedList<>();
@@ -80,7 +90,7 @@ public class SecureTCPServer
 
         this.closedSecureConnections = new AtomicInteger(0);
         this.closedUnsecureConnections = new AtomicInteger(0);
-        
+
         this.hasAcceptedConnection = new AtomicBoolean(false);
         this.hasDataToWrite = new AtomicBoolean(false);
 
@@ -110,6 +120,10 @@ public class SecureTCPServer
         t.setDaemon(true);
         t.start();
 
+        t = new Thread(new WatchdogThread());
+        t.setDaemon(true);
+        t.start();
+        
         t = new Thread(new WriteThread());
         t.setDaemon(true);
         t.start();
@@ -151,7 +165,7 @@ public class SecureTCPServer
         {
         }
     }
-    
+
     private void removeUnsecureConnection(UnsecureConnectionTimeout uc)
     {
         unsecureConnections.remove(uc);
@@ -210,9 +224,9 @@ public class SecureTCPServer
                             try
                             {
                                 uc.read(new IConnection.ByteArray());
-                                UnsecureConnection connection = 
-                                        uc.getConnection();
-                                
+                                UnsecureConnection connection
+                                        = uc.getConnection();
+
                                 if (connection.isReady())
                                 {
                                     SecureConnection sc
@@ -224,7 +238,7 @@ public class SecureTCPServer
 
                                     scToAdd.add(sct);
                                     secureConnections.add(sct);
-                                    
+
                                     connection.establishConnection(uc);
                                 }
                                 else if (uc.isTimeout())
@@ -281,6 +295,44 @@ public class SecureTCPServer
         }
     }
 
+    private class WatchdogThread implements Runnable
+    {
+        @Override
+        public void run()
+        {
+            Thread.currentThread().setName("Watchdog thread");
+            
+            long lastTime = System.currentTimeMillis();
+            
+            while (true)
+            {
+                try
+                {
+                    synchronized (writeThreadCurrentConnectionLock)
+                    {
+                        long currentTime = System.currentTimeMillis();
+                        int val = writeThreadWatchDogCounter.getAndAdd(
+                                (int)(lastTime - currentTime));
+                        lastTime = currentTime;
+                        
+                        if (val < 0)
+                        {
+                            if (writeThreadCurrentConnection != null)
+                            {
+                                writeThreadCurrentConnection.close();
+                            }
+                        }
+                    }
+                    
+                    Thread.sleep(10);
+                }
+                catch (InterruptedException ex)
+                {
+                }
+            }
+        }
+    }
+
     private class WriteThread implements Runnable
     {
         @Override
@@ -293,41 +345,51 @@ public class SecureTCPServer
                 while (!hasDataToWrite.get())
                 {
                 }
-                
+
                 IConnectionId connection;
                 byte[] data;
                 boolean closeAfterWrite;
                 Tuple tuple;
-                
+
                 synchronized (dataToWrite)
                 {
                     hasDataToWrite.set(dataToWrite.size() > 1);
-                    
+
                     tuple = dataToWrite.removeFirst();
                 }
-                
+
                 connection = tuple.getConnection();
                 data = tuple.getData();
                 closeAfterWrite = tuple.getCloseAfterWrite();
 
                 boolean alreadyWrite = false;
-                
+
                 {
-                    Iterator<SecureConnectionTimeout> it = 
-                            secureConnections.iterator();
-                    
+                    Iterator<SecureConnectionTimeout> it
+                            = secureConnections.iterator();
+
                     while (it.hasNext())
                     {
                         SecureConnectionTimeout sct = it.next();
-                        
+
                         if (sct == connection)
                         {
                             alreadyWrite = true;
-                            
+
                             try
                             {
+                                synchronized (writeThreadCurrentConnectionLock)
+                                {
+                                    writeThreadWatchDogCounter.
+                                            set(secureConnectionTimeout);
+                                    writeThreadCurrentConnection = sct;
+                                }
                                 sct.write(data);
-                                
+                                synchronized (writeThreadCurrentConnectionLock)
+                                {
+                                    writeThreadCurrentConnection = null;
+                                }
+
                                 if (closeAfterWrite)
                                 {
                                     closeSecureConnection(sct);
@@ -340,22 +402,32 @@ public class SecureTCPServer
                         }
                     }
                 }
-                
+
                 if (!alreadyWrite)
                 {
-                    Iterator<UnsecureConnectionTimeout> it = 
-                            unsecureConnections.iterator();
-                    
+                    Iterator<UnsecureConnectionTimeout> it
+                            = unsecureConnections.iterator();
+
                     while (it.hasNext())
                     {
                         UnsecureConnectionTimeout uct = it.next();
-                        
+
                         if (uct == connection)
                         {
                             try
                             {
+                                synchronized (writeThreadCurrentConnectionLock)
+                                {
+                                    writeThreadWatchDogCounter.
+                                            set(unsecureConnectionTimeout);
+                                    writeThreadCurrentConnection = uct;
+                                }
                                 uct.write(data);
-                                
+                                synchronized (writeThreadCurrentConnectionLock)
+                                {
+                                    writeThreadCurrentConnection = null;
+                                }
+
                                 if (closeAfterWrite)
                                 {
                                     removeUnsecureConnection(uct);
@@ -387,10 +459,10 @@ public class SecureTCPServer
                 {
                     Socket socket = serverSocket.accept();
                     socket.setSoTimeout(secureConnectionTimeout);
-                    
+
                     UnsecureConnection uc = new UnsecureConnection(socket,
-                                SecureTCPServer.this, rsakc);
-                    
+                            SecureTCPServer.this, rsakc);
+
                     unsecureConnections.add(
                             new UnsecureConnectionTimeout(uc,
                                     unsecureConnectionTimeout));
@@ -416,7 +488,7 @@ public class SecureTCPServer
         synchronized (acceptedConnections)
         {
             hasAcceptedConnection.set(acceptedConnections.size() > 1);
-            
+
             return acceptedConnections.removeFirst();
         }
     }

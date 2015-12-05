@@ -5,18 +5,15 @@
  */
 package pl.rcebula.crypto.secure_tcp;
 
+import pl.rcebula.crypto.secure_tcp.utils.PortGiver;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import pl.rcebula.crypto.encryption.Names;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
 
 /**
@@ -88,7 +85,7 @@ public class TimeoutTest
         int secureConnectionTimeout = 100;
         int unsecureConnectionTimeout = 200;
         
-        int port = 14004;
+        int port = PortGiver.getPort();
         RSAKeyContainer serverRsakc = new RSAKeyContainer("/public_key.der",
                 "/private_key.der");
         SecureTCPServer secureTCPServer = new SecureTCPServer(port, serverRsakc,
