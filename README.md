@@ -99,3 +99,25 @@ public static void RSATest() throws Exception
   System.out.println(assertArrayEquals(data, decrypted));
 }
 ```
+#### AES
+```java
+public static void AESTest() throws Exception
+{
+    // instance of AES class
+    AES aes = new AES();
+    // aes key container class, key will be generated when constructor calls
+    // there is also constructor version, when you can give your key and 
+    // initialization vector
+    AESKeyContainer aeskc = new AESKeyContainer();
+    // some data you want to encrypt
+    byte[] data = new byte[] { 1, 2, 3, 4 };
+    // encrypt data using key and iv
+    byte[] encrypted = aes.encrypt(data, aeskc.getKey(), aeskc.getIv());
+    // decrypt encrypted data
+    byte[] decrypted = aes.decrypt(encrypted, aeskc.getKey(), 
+            aeskc.getIv());
+    
+    // check if data and decrypted arrays are the same
+    System.out.println(assertArrayEquals(data, decrypted));
+}
+```
