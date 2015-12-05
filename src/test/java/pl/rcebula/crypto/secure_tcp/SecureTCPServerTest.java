@@ -11,8 +11,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import pl.rcebula.crypto.encryption.Names;
 import pl.rcebula.crypto.encryption.RSAKeyContainer;
 
 /**
@@ -35,12 +33,9 @@ public class SecureTCPServerTest
         {
             try
             {
-                String message = new String(data, Names.STRING_CODING);
-                System.out.println(message);
             }
             catch (Exception ex)
             {
-                
             }
         }
     }

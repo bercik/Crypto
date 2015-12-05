@@ -24,7 +24,5 @@ public class Names
     public final static String AES_PADDING_ALGORITHM_NAME = 
             "AES/CBC/PKCS5Padding";
     
-    public final static String STRING_CODING = "UTF-8";
-    
     public final static int AES_KEY_SIZE = 128; // in bits
 }

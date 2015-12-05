@@ -5,9 +5,6 @@
  */
 package pl.rcebula.crypto.encryption;
 
-import pl.rcebula.crypto.encryption.AES;
-import pl.rcebula.crypto.encryption.Names;
-import pl.rcebula.crypto.encryption.AESKeyContainer;
 import java.security.Key;
 import javax.crypto.spec.IvParameterSpec;
 import org.junit.After;
@@ -56,16 +53,18 @@ public class AESTest
     @Test
     public void testEncryptAndDecrypt() throws Exception
     {
+        String coding = "UTF-8";
+        
         System.out.println("decrypt");
         
         String text = "Hello world!";
-        byte[] toEncrypt = text.getBytes(Names.STRING_CODING);
+        byte[] toEncrypt = text.getBytes(coding);
         Key key = container.getKey();
         IvParameterSpec iv = container.getIv();
         AES instance = new AES();
         byte[] encrypted = instance.encrypt(toEncrypt, key, iv);
         byte[] decrypted = instance.decrypt(encrypted, key, iv);
         assertArrayEquals(toEncrypt, decrypted);
-        assertEquals(text, new String(decrypted, Names.STRING_CODING));
+        assertEquals(text, new String(decrypted, coding));
     }
 }

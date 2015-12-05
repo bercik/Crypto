@@ -24,6 +24,8 @@ import pl.rcebula.crypto.encryption.RSAKeyContainer;
  */
 public class DataSendTest
 {
+    private static final String coding = "UTF-8";
+    
     private static final String[] messages = new String[]
     {
         "Hello world!",
@@ -42,7 +44,7 @@ public class DataSendTest
         {
             try
             {
-                String message = new String(data, Names.STRING_CODING);
+                String message = new String(data, coding);
                 recivedMsgs.add(message);
 
                 counter++;
@@ -110,9 +112,9 @@ public class DataSendTest
         secureTCPClient.connect();
         secureTCPClient1.connect();
 
-        secureTCPClient.write(messages[0].getBytes(Names.STRING_CODING));
-        secureTCPClient1.write(messages[1].getBytes(Names.STRING_CODING));
-        secureTCPClient.write(messages[2].getBytes(Names.STRING_CODING));
+        secureTCPClient.write(messages[0].getBytes(coding));
+        secureTCPClient1.write(messages[1].getBytes(coding));
+        secureTCPClient.write(messages[2].getBytes(coding));
         secureTCPClient1.write(new byte[0]);
 
         Thread.sleep(50);

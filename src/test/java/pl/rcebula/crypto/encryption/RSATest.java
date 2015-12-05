@@ -26,6 +26,8 @@ public class RSATest
 {
     private static RSAKeyContainer container;
     
+    private static final String coding = "UTF-8";
+    
     public RSATest()
     {
     }
@@ -59,7 +61,7 @@ public class RSATest
     {
         System.out.println("encrypt");
         String text = "Hello world!";
-        byte[] toEncrypt = text.getBytes(Names.STRING_CODING);
+        byte[] toEncrypt = text.getBytes(coding);
         Key publicKey = container.getPublicKey();
         Key privateKey = container.getPrivateKey();
         RSA instance = new RSA();
@@ -67,7 +69,7 @@ public class RSATest
         byte[] decrypted = instance.decrypt(encrypted, privateKey);
         
         assertArrayEquals(decrypted, toEncrypt);
-        assertEquals(text, new String(decrypted, Names.STRING_CODING));
+        assertEquals(text, new String(decrypted, coding));
     }
 
     /**
@@ -82,7 +84,7 @@ public class RSATest
                 "the maximum amount that RSA with 256 bytes key long can " +
                 "encrypt.";
         
-        byte[] toSign = text.getBytes(Names.STRING_CODING);
+        byte[] toSign = text.getBytes(coding);
         PublicKey publicKey = container.getPublicKey();
         PrivateKey privateKey = container.getPrivateKey();
         RSA instance = new RSA();
